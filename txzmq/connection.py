@@ -231,21 +231,6 @@ class ZmqConnection(object):
         """
         return 'ZMQ'
 
-    def _send(self, message):
-        """
-        Send message via ZeroMQ.
-
-        @param message: message data
-        """
-        if not hasattr(message, '__iter__'):
-            self.queue.append((0, message))
-        else:
-            self.queue.extend([(constants.SNDMORE, m) for m in message[:-1]])
-            self.queue.append((0, message[-1]))
-
-        if self.scheduled_doRead is None:
-            self.scheduled_doRead = reactor.callLater(0, self.doRead)
-
     def _connectOrBind(self, endpoints):
         """
         Connect and/or bind socket to endpoints.
@@ -273,12 +258,15 @@ class ZmqConnection(object):
 
     def sendMultipart(self, parts):
         """
-        Provides a higher level wrapper over ZmqConnection.send for sending
-        multipart messages.
+        Send a multipart message via ZeroMQ.
 
         @param parts: message data
         """
-        self._send(parts)
+        self.queue.extend([(constants.SNDMORE, m) for m in parts[:-1]])
+        self.queue.append((0, parts[-1]))
+
+        if self.scheduled_doRead is None:
+            self.scheduled_doRead = reactor.callLater(0, self.doRead)
 
     def messageReceived(self, message):
         """
