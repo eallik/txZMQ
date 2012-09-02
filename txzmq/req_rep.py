@@ -161,6 +161,9 @@ class ZmqReplyConnection(ZmqRouterConnection):
         self.sendMultipart(messageId, messageParts)
 
 
+# TODO: *if* we're going to break backwards compatibility anyway, we should
+# just remove these 4 aliases, but I'll keep them for now.
+
 class ZmqXREQConnection(ZmqRequestConnection):
     """
     Provided for backwards compatibility.
