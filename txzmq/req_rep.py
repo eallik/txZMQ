@@ -133,7 +133,10 @@ class ZmqReplyConnection(ZmqRouterConnection):
             message[:i - 1], message[i - 1], message[i + 1:])
         msgParts = payload[0:]
         self._routingInfo[msgId] = routingInfo
-        self.gotMessage(msgId, *msgParts)
+        if len(msgParts) > 1:
+            self.gotMultipart(msgId, msgParts)
+        else:
+            self.gotMessage(msgId, msgParts[0])
 
     def gotMessage(self, messageId, message):
         """
