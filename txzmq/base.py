@@ -54,7 +54,7 @@ class ZmqBase(ZmqConnection):
             self.gotMessage(message[0])
 
     def gotMessage(self, *args, **kwargs):
-        raise NotImplementedError
+        self.gotMultipart(*args, **kwargs)
 
     def gotMultipart(self, *args, **kwargs):
         raise NotImplementedError
