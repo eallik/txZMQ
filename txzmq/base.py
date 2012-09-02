@@ -28,7 +28,7 @@ class ZmqBase(ZmqConnection):
         @param message: message data
         @type message: C{str}
         """
-        self.sendMultipart([message])
+        return self.sendMultipart([message])
 
     def sendMultipart(self, parts):
         """
