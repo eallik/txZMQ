@@ -1,6 +1,7 @@
 """
 ZeroMQ connection.
 """
+import warnings
 from collections import deque, namedtuple
 from itertools import islice
 
@@ -271,6 +272,14 @@ class ZmqConnection(object):
 
         if self.scheduled_doRead is None:
             self.scheduled_doRead = reactor.callLater(0, self.doRead)
+
+    def send(self, message):
+        warnings.warn("ZmqConnection.send has been deprecated in favour of "
+                      "sendMsg and sendMultipart", DeprecationWarning)
+        if hasattr(message, '__iter__'):
+            return self.sendMultipart(message)
+        else:
+            return self.sendMsg(message)
 
     def messageReceived(self, message):
         """
