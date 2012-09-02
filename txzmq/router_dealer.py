@@ -25,5 +25,11 @@ class ZmqRouterConnection(ZmqBase):
         self.send([recipientId] + parts)
 
     def messageReceived(self, message):
-        sender_id = message.pop(0)
-        self.gotMessage(sender_id, message)
+        senderId = message.pop(0)
+        if len(message) == 1:
+            self.gotMessage(senderId, message[0])
+        else:
+            self.gotMultipart(senderId, message)
+
+    def gotMessage(self, senderId, message):
+        self.gotMultipart(senderId, [message])
