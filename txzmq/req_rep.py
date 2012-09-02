@@ -1,5 +1,10 @@
 """
-ZeroMQ REQ-REP wrappers.
+ZeroMQ REQ-REP-like wrappers and the depreacted XREQ-XREP aliases.
+
+Caveat: the XREQ and XREP compatibility aliases do not behave the same way as
+the original ZeroMQ XREQ and XREP sockets in the sense that ZeroMQ XREQ and
+XREP behave like DEALER and ROUTER, but the aliases her behave just like REQ
+and REP.
 """
 import uuid
 import warnings
