@@ -1,5 +1,5 @@
 """
-ZeroMQ REQ-REP-like wrappers and the depreacted XREQ-XREP aliases.
+ZeroMQ REQ-REP-like wrappers and the deprecated XREQ-XREP aliases.
 
 Caveat: the XREQ and XREP compatibility aliases do not behave the same way as
 the original ZeroMQ XREQ and XREP sockets in the sense that ZeroMQ XREQ and
