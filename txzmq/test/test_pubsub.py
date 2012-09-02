@@ -20,9 +20,10 @@ class ZmqTestSubConnection(ZmqSubConnection):
         self.messages.append([tag, message])
 
 
-class ZmqConnectionTestCase(unittest.TestCase):
+class ZmqPubSubTestCase(unittest.TestCase):
     """
-    Test case for L{zmq.twisted.connection.Connection}.
+    Test case for L{txzmq.pubsub.ZmqPubConnection} and
+    L{txzmq.pubsub.ZmqSubConnection}.
     """
 
     def setUp(self):

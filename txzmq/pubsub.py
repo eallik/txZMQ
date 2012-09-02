@@ -3,16 +3,16 @@ ZeroMQ PUB-SUB wrappers.
 """
 from zmq.core import constants
 
-from txzmq.connection import ZmqConnection
+from txzmq.base import ZmqBase
 
 
-class ZmqPubConnection(ZmqConnection):
+class ZmqPubConnection(ZmqBase):
     """
     Publishing in broadcast manner.
     """
     socketType = constants.PUB
 
-    def publish(self, message, tag=''):
+    def sendMsg(self, message, tag=''):
         """
         Broadcast L{message} with specified L{tag}.
 
@@ -21,10 +21,20 @@ class ZmqPubConnection(ZmqConnection):
         @param tag: message tag
         @type tag: C{str}
         """
-        self.send(tag + '\0' + message)
+        self.send([tag + '\0' + message])
+
+    def sendMultipart(self, messageParts, tag=''):
+        # TODO:
+        raise NotImplementedError
+
+    def publish(self, message, tag=''):
+        self.sendMsg(message, tag)
+
+    def __repr__(self):
+        return 'PUB'
 
 
-class ZmqSubConnection(ZmqConnection):
+class ZmqSubConnection(ZmqBase):
     """
     Subscribing to messages.
     """
@@ -54,6 +64,9 @@ class ZmqSubConnection(ZmqConnection):
 
         @param message: message data
         """
+        # TODO: fix the bug
+        # TODO: support multipart messages
+        # TODO: support multipart messages with 0-byte compatibility
         if len(message) == 2:  # XXX: this will be a bug with a 2 char string
             # compatibility receiving of tag as first part
             # of multi-part message
