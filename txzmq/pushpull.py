@@ -3,10 +3,10 @@ ZeroMQ PUSH-PULL wrappers.
 """
 from zmq.core import constants
 
-from txzmq.base import ZmqBase
+from txzmq.connection import ZmqConnection
 
 
-class ZmqPushConnection(ZmqBase):
+class ZmqPushConnection(ZmqConnection):
     """
     Publishing in broadcast manner.
     """
@@ -35,7 +35,7 @@ class ZmqPushConnection(ZmqBase):
         self.sendMultipart(messageParts)
 
 
-class ZmqPullConnection(ZmqBase):
+class ZmqPullConnection(ZmqConnection):
     """
     Pull messages from a socket
     """

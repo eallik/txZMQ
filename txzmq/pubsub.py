@@ -3,10 +3,10 @@ ZeroMQ PUB-SUB wrappers.
 """
 from zmq.core import constants
 
-from txzmq.base import ZmqBase
+from txzmq.connection import ZmqConnection
 
 
-class ZmqPubConnection(ZmqBase):
+class ZmqPubConnection(ZmqConnection):
     """
     Publishing in broadcast manner.
     """
@@ -21,7 +21,7 @@ class ZmqPubConnection(ZmqBase):
         @param tag: message tag
         @type tag: C{str}
         """
-        self.send([tag + '\0' + message])
+        ZmqConnection.sendMultipart(self, [tag + '\0' + message])
 
     def sendMultipart(self, messageParts, tag=''):
         # TODO:
@@ -37,7 +37,7 @@ class ZmqPubConnection(ZmqBase):
         return 'PUB'
 
 
-class ZmqSubConnection(ZmqBase):
+class ZmqSubConnection(ZmqConnection):
     """
     Subscribing to messages.
     """

@@ -60,7 +60,7 @@ class ZmqRouterDealerTwoFactoryConnectionTestCase(unittest.TestCase):
     def test_start(self):
         for _ in xrange(self.REQUEST_COUNT):
             reactor.callLater(0, self.dealer.sendMsg, 'req')
-        reactor.callLater(0, self.dealer.send, 'stop')
+        reactor.callLater(0, self.dealer.sendMsg, 'stop')
 
         def checkResults(_):
             self.failUnlessEqual(self.dealer.message_count, 3 * self.REQUEST_COUNT)

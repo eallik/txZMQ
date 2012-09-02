@@ -57,7 +57,7 @@ class ZmqConnectionTestCase(unittest.TestCase):
         s = ZmqTestSender(
             self.factory, ZmqEndpoint(ZmqEndpointType.connect, "inproc://#3"))
 
-        s.send('abcd')
+        s.sendMsg('abcd')
 
         def check(ignore):
             result = getattr(r, 'messages', [])
@@ -80,7 +80,7 @@ class ZmqConnectionTestCase(unittest.TestCase):
         s = ZmqTestSender(
             self.factory, ZmqEndpoint(ZmqEndpointType.connect, "inproc://#1"))
 
-        s.send('abcd')
+        s.sendMsg('abcd')
 
         def check(ignore):
             result = getattr(r, 'messages', [])
@@ -99,7 +99,7 @@ class ZmqConnectionTestCase(unittest.TestCase):
                                       "tcp://127.0.0.1:5555"))
 
         for i in xrange(100):
-            s.send(str(i))
+            s.sendMsg(str(i))
 
         def check(ignore):
             result = getattr(r, 'messages', [])
@@ -117,7 +117,7 @@ class ZmqConnectionTestCase(unittest.TestCase):
             self.factory, ZmqEndpoint(ZmqEndpointType.connect,
                                       "tcp://127.0.0.1:5555"))
 
-        s.send(["0" * 10000, "1" * 10000])
+        s.sendMultipart(["0" * 10000, "1" * 10000])
 
         def check(ignore):
             result = getattr(r, 'messages', [])

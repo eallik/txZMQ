@@ -11,14 +11,15 @@ import warnings
 
 from twisted.internet import defer
 
-from txzmq.router_dealer import ZmqDealerConnection, ZmqRouterConnection
+from zmq.core import constants
+from txzmq.connection import ZmqConnection
 
 
 # TODO: consider adding waitRequest to ZmqReplyConnection to avoid the need to
 # subclass it to use it.
 
 
-class ZmqRequestConnection(ZmqDealerConnection):
+class ZmqRequestConnection(ZmqConnection):
     """
     A REQ-like connection.
 
@@ -29,11 +30,13 @@ class ZmqRequestConnection(ZmqDealerConnection):
     and receiving replies to them in any order chosen by the server. Not having
     support for this would defeat the purpose of Twisted.
     """
+    socketType = constants.DEALER
+
     # the number of new UUIDs to generate when the pool runs out of them
     UUID_POOL_GEN_SIZE = 5
 
     def __init__(self, *args, **kwargs):
-        ZmqDealerConnection.__init__(self, *args, **kwargs)
+        ZmqConnection.__init__(self, *args, **kwargs)
         self._requests = {}
         self._uuids = []
 
@@ -74,7 +77,7 @@ class ZmqRequestConnection(ZmqDealerConnection):
         d = defer.Deferred()
         messageId = self._getNextId()
         self._requests[messageId] = d
-        self.send([messageId, ''] + messageParts)
+        ZmqConnection.sendMultipart(self, [messageId, ''] + messageParts)
         return d
 
     def messageReceived(self, message):
@@ -91,7 +94,7 @@ class ZmqRequestConnection(ZmqDealerConnection):
         d.callback(msg)
 
 
-class ZmqReplyConnection(ZmqRouterConnection):
+class ZmqReplyConnection(ZmqConnection):
     """
     A REP-like connection.
 
@@ -102,8 +105,10 @@ class ZmqReplyConnection(ZmqRouterConnection):
     incoming requests and replying to them in any order desired. Not having
     support for this would defeat the purpose of Twisted.
     """
+    socketType = constants.ROUTER
+
     def __init__(self, *args, **kwargs):
-        ZmqRouterConnection.__init__(self, *args, **kwargs)
+        ZmqConnection.__init__(self, *args, **kwargs)
         self._routingInfo = {}  # keep track of routing info
 
     def sendMsg(self, messageId, message):
@@ -119,7 +124,7 @@ class ZmqReplyConnection(ZmqRouterConnection):
         @type message: C{str}
         """
         routingInfo = self._routingInfo.pop(messageId)
-        self.send(routingInfo + [messageId, ''] + messageParts)
+        ZmqConnection.sendMultipart(self, routingInfo + [messageId, ''] + messageParts)
 
     def messageReceived(self, message):
         """

@@ -26,7 +26,22 @@ ZmqEndpoint = namedtuple('ZmqEndpoint', ['type', 'address'])
 
 class ZmqConnection(object):
     """
-    Connection through ZeroMQ, wraps up ZeroMQ socket.
+    Connection through ZeroMQ, wraps a ZeroMQ socket.
+
+    Base class for all ZMQ connection classes with a uniform interface.
+
+    Subclasses should override sendMsg and sendMultipart with their own
+    connection-type specific implementations, which can have a different
+    argument signature. Thus, ZmqBase does not attempt to hide away the
+    differences between different connection classes--this is simply
+    impossible--It simply attempts to provide a more consistent way of
+    interacting with them.
+
+    By default, these methods simply delegate to the unerlying low-level
+    ZmqConnection.send, which handles both single and multi-part messages.
+
+    Subclasses can/should add their own semantic aliases for sendMsg and
+    sendMultipart, such as publish and publishMultipart for a PUB socket.
 
     @cvar socketType: socket type, from ZeroMQ
     @cvar allowLoopbackMulticast: is loopback multicast allowed?
@@ -216,7 +231,7 @@ class ZmqConnection(object):
         """
         return 'ZMQ'
 
-    def send(self, message):
+    def _send(self, message):
         """
         Send message via ZeroMQ.
 
@@ -231,14 +246,6 @@ class ZmqConnection(object):
         if self.scheduled_doRead is None:
             self.scheduled_doRead = reactor.callLater(0, self.doRead)
 
-    def messageReceived(self, message):
-        """
-        Called on incoming message from ZeroMQ.
-
-        @param message: message data
-        """
-        raise NotImplementedError(self)
-
     def _connectOrBind(self, endpoints):
         """
         Connect and/or bind socket to endpoints.
@@ -250,3 +257,57 @@ class ZmqConnection(object):
                 self.socket.bind(endpoint.address)
             else:
                 assert False, "Unknown endpoint type %r" % endpoint
+
+    # What follows is the API that the users of this class and its subclasses
+    # should use.
+
+    def sendMsg(self, message):
+        """
+        Provides a higher level wrapper over ZmqConnection.send for sending
+        single-part messages.
+
+        @param message: message data
+        @type message: C{str}
+        """
+        return self.sendMultipart([message])
+
+    def sendMultipart(self, parts):
+        """
+        Provides a higher level wrapper over ZmqConnection.send for sending
+        multipart messages.
+
+        @param parts: message data
+        """
+        self._send(parts)
+
+    def messageReceived(self, message):
+        """
+        Called on incoming message from ZeroMQ.
+
+        Override this to handle generic messages received and pass them to
+        gotMessage with a socket-type specific signature.
+
+        @param message: message data
+        """
+        if len(message) > 1:
+            self.gotMultipart(message)
+        else:
+            self.gotMessage(message[0])
+
+    def gotMessage(self, *args, **kwargs):
+        """
+        Called on an incoming message.
+
+        The default implementation delegates to `ZmqBase.gotMessage` to allow
+        implementing message receiving logic in just one handler.
+        """
+        self.gotMultipart(*args, **kwargs)
+
+    def gotMultipart(self, *args, **kwargs):
+        """
+        Called on an incoming multipart message.
+
+        Unless ZmqBase.gotMessage is overridden, this method also gets called
+        for single-part messages.
+        """
+        raise NotImplementedError
