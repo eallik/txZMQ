@@ -11,9 +11,9 @@ from twisted.internet import defer
 from txzmq.connection import ZmqConnection
 
 
-class ZmqREQConnection(ZmqConnection):
+class ZmqRequestConnection(ZmqConnection):
     """
-    A REQ connection.
+    A REQ-like connection.
 
     This is implemented with an underlying DEALER socket, even though
     semantics are closer to REQ socket.
@@ -81,9 +81,9 @@ class ZmqREQConnection(ZmqConnection):
         d.callback(msg)
 
 
-class ZmqREPConnection(ZmqConnection):
+class ZmqReplyConnection(ZmqConnection):
     """
-    A REP connection.
+    A REP-like connection.
 
     This is implemented with an underlying ROUTER socket, but the semantics
     are close to REP socket.
@@ -132,33 +132,55 @@ class ZmqREPConnection(ZmqConnection):
         raise NotImplementedError(self)
 
 
-class ZmqXREPConnection(ZmqREPConnection):
+class ZmqXREQConnection(ZmqRequestConnection):
     """
     Provided for backwards compatibility.
 
-    Deprecated in favour of either ZmqREPConnection or ZmqROUTERConnection.
-
+    Deprecated in favour of either ZmqRequestConnection or ZmqDealerConnection.
     """
 
-    def __init__(self, factory, *endpoints):
-        warnings.warn("ZmqXREPConnection is deprecated in favour of "
-                      "either ZmqREPConnection or ZmqROUTERConnection",
-                      DeprecationWarning)
-        ZmqREPConnection.__init__(self, factory)
-        self.add_endpoints(endpoints)
-
-
-class ZmqXREQConnection(ZmqREQConnection):
-    """
-    Provided for backwards compatibility.
-
-    Deprecated in favour of either ZmqREQConnection or ZmqDEALERConnection.
-
-    """
-
-    def __init__(self, factory, *endpoints):
+    def __init__(self, *args, **kwargs):
         warnings.warn("ZmqXREQConnection is deprecated in favour of "
-                      "either ZmqREQConnection or ZmqDEALERConnection",
+                      "either ZmqReqConnection or ZmqDealerConnection",
                       DeprecationWarning)
-        ZmqREQConnection.__init__(self, factory)
-        self.add_endpoints(endpoints)
+        ZmqRequestConnection.__init__(self, *args, **kwargs)
+
+
+class ZmqXREPConnection(ZmqReplyConnection):
+    """
+    Provided for backwards compatibility.
+
+    Deprecated in favour of either ZmqReplyConnection or ZmqRouterConnection.
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("ZmqXREPConnection is deprecated in favour of "
+                      "either ZmqReplyConnection or ZmqRouterConnection",
+                      DeprecationWarning)
+        ZmqReplyConnection.__init__(self, *args, **kwargs)
+
+
+class ZmqREQConnection(ZmqRequestConnection):
+    """
+    Provided for backwards compatibility.
+
+    Deprecated alias of ZmqRequestConnection.
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("ZmqREQConnection is a deprecated alias of "
+                      "ZmqRequestConnection", DeprecationWarning)
+        ZmqRequestConnection.__init__(self, *args, **kwargs)
+
+
+class ZmqREPConnection(ZmqReplyConnection):
+    """
+    Provided for backwards compatibility.
+
+    Deprecated alias of ZmqReplyConnection.
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("ZmqREPConnection is a deprecated alias of "
+                      "ZmqReplyConnection", DeprecationWarning)
+        ZmqREPConnection.__init__(self, *args, **kwargs)
