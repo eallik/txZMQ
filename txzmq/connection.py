@@ -2,6 +2,7 @@
 ZeroMQ connection.
 """
 from collections import deque, namedtuple
+from itertools import islice
 
 from zmq.core import constants, error
 from zmq.core.socket import Socket
@@ -264,7 +265,8 @@ class ZmqConnection(object):
         """
         if not hasattr(parts, '__iter__'):
             raise TypeError("ZmqConnection.sendMultipart requires an iterable")
-        self.queue.extend([(constants.SNDMORE, m) for m in parts[:-1]])
+        self.queue.extend((constants.SNDMORE, m)
+                          for m in islice(parts, len(parts) - 1))
         self.queue.append((0, parts[-1]))
 
         if self.scheduled_doRead is None:
