@@ -146,7 +146,7 @@ class ZmqReplyConnection(ZmqRouterConnection):
         @type messageId: C{str}
         @param message: message
         """
-        raise NotImplementedError(self)
+        self.gotMultipart(messageId, [message])
 
     def gotMultipart(self, messageId, messageParts):
         """
