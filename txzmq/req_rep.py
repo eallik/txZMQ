@@ -225,4 +225,4 @@ class ZmqREPConnection(ZmqReplyConnection):
     def __init__(self, *args, **kwargs):
         warnings.warn("ZmqREPConnection is a deprecated alias of "
                       "ZmqReplyConnection", DeprecationWarning)
-        ZmqREPConnection.__init__(self, *args, **kwargs)
+        ZmqReplyConnection.__init__(self, *args, **kwargs)
