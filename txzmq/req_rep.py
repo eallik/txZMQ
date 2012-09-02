@@ -25,6 +25,9 @@ class ZmqRequestConnection(ZmqDealerConnection):
     This is implemented with an underlying DEALER socket, even though
     semantics are closer to REQ socket.
 
+    Unlike a true REQ socket, supports sending multiple simultaneous requests
+    and receiving replies to them in any order chosen by the server. Not having
+    support for this would defeat the purpose of Twisted.
     """
     # the number of new UUIDs to generate when the pool runs out of them
     UUID_POOL_GEN_SIZE = 5
@@ -94,6 +97,10 @@ class ZmqReplyConnection(ZmqRouterConnection):
 
     This is implemented with an underlying ROUTER socket, but the semantics
     are close to REP socket.
+
+    Unlike a true REP socket, supports handling of multiple simultaneous
+    incoming requests and replying to them in any order desired. Not having
+    support for this would defeat the purpose of Twisted.
     """
     def __init__(self, *args, **kwargs):
         ZmqRouterConnection.__init__(self, *args, **kwargs)
