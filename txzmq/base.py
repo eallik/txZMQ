@@ -54,7 +54,19 @@ class ZmqBase(ZmqConnection):
             self.gotMessage(message[0])
 
     def gotMessage(self, *args, **kwargs):
+        """
+        Called on an incoming message.
+
+        The default implementation delegates to `ZmqBase.gotMessage` to allow
+        implementing message receiving logic in just one handler.
+        """
         self.gotMultipart(*args, **kwargs)
 
     def gotMultipart(self, *args, **kwargs):
+        """
+        Called on an incoming multipart message.
+
+        Unless ZmqBase.gotMessage is overridden, this method also gets called
+        for single-part messages.
+        """
         raise NotImplementedError
