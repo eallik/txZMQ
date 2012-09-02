@@ -67,7 +67,7 @@ class ZmqPullConnection(ZmqBase):
 
         @param message: message
         """
-        raise NotImplementedError(self)
+        self.onPullMultipart([message])
 
     def onPullMultipart(self, messageParts):
         """
