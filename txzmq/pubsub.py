@@ -30,6 +30,9 @@ class ZmqPubConnection(ZmqBase):
     def publish(self, message, tag=''):
         self.sendMsg(message, tag)
 
+    def publishMultipart(self, messageParts, tag=''):
+        self.sendMultipart(messageParts, tag)
+
     def __repr__(self):
         return 'PUB'
 
@@ -82,6 +85,15 @@ class ZmqSubConnection(ZmqBase):
         Called on incoming message recevied by subscriber
 
         @param message: message data
+        @param tag: message tag
+        """
+        self.gotMultipart([message], tag)
+
+    def gotMultipart(self, messageParts, tag):
+        """
+        Called on incoming multipart message recevied by subscriber
+
+        @param messageParts: message data
         @param tag: message tag
         """
         raise NotImplementedError(self)
