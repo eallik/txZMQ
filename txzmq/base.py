@@ -48,7 +48,10 @@ class ZmqBase(ZmqConnection):
 
         @param message: message data
         """
-        self.gotMultipart(message)
+        if len(message) > 1:
+            self.gotMultipart(message)
+        else:
+            self.gotMessage(message[0])
 
     def gotMessage(self, *args, **kwargs):
         raise NotImplementedError
