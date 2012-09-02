@@ -4,14 +4,16 @@ ZeroMQ REQ-REP wrappers.
 import uuid
 import warnings
 
-from zmq.core import constants
-
 from twisted.internet import defer
 
-from txzmq.connection import ZmqConnection
+from txzmq.router_dealer import ZmqDealerConnection, ZmqRouterConnection
 
 
-class ZmqRequestConnection(ZmqConnection):
+# TODO: consider adding waitRequest to ZmqReplyConnection to avoid the need to
+# subclass it to use it.
+
+
+class ZmqRequestConnection(ZmqDealerConnection):
     """
     A REQ-like connection.
 
@@ -19,13 +21,11 @@ class ZmqRequestConnection(ZmqConnection):
     semantics are closer to REQ socket.
 
     """
-    socketType = constants.DEALER
-
     # the number of new UUIDs to generate when the pool runs out of them
     UUID_POOL_GEN_SIZE = 5
 
     def __init__(self, *args, **kwargs):
-        ZmqConnection.__init__(self, *args, **kwargs)
+        ZmqDealerConnection.__init__(self, *args, **kwargs)
         self._requests = {}
         self._uuids = []
 
@@ -56,7 +56,7 @@ class ZmqRequestConnection(ZmqConnection):
         if len(self._uuids) > 2 * self.UUID_POOL_GEN_SIZE:
             self._uuids[-self.UUID_POOL_GEN_SIZE:] = []
 
-    def sendMsg(self, *messageParts):
+    def sendMultipart(self, messageParts):
         """
         Send L{message} with specified L{tag}.
 
@@ -66,7 +66,7 @@ class ZmqRequestConnection(ZmqConnection):
         d = defer.Deferred()
         messageId = self._getNextId()
         self._requests[messageId] = d
-        self.send([messageId, ''] + list(messageParts))
+        self.send([messageId, ''] + messageParts)
         return d
 
     def messageReceived(self, message):
@@ -75,26 +75,29 @@ class ZmqRequestConnection(ZmqConnection):
 
         @param message: message data
         """
+        # Here, it is not possible to have separate handling of single- and
+        # multipart messages because all we have is a single Deferred:
         msgId, _, msg = message[0], message[1], message[2:]
         d = self._requests.pop(msgId)
         self._releaseId(msgId)
         d.callback(msg)
 
 
-class ZmqReplyConnection(ZmqConnection):
+class ZmqReplyConnection(ZmqRouterConnection):
     """
     A REP-like connection.
 
     This is implemented with an underlying ROUTER socket, but the semantics
     are close to REP socket.
     """
-    socketType = constants.ROUTER
-
     def __init__(self, *args, **kwargs):
-        ZmqConnection.__init__(self, *args, **kwargs)
+        ZmqRouterConnection.__init__(self, *args, **kwargs)
         self._routingInfo = {}  # keep track of routing info
 
-    def reply(self, messageId, *messageParts):
+    def sendMsg(self, messageId, message):
+        self.sendMultipart(messageId, [message])
+
+    def sendMultipart(self, messageId, messageParts):
         """
         Send L{message} with specified L{tag}.
 
@@ -104,7 +107,7 @@ class ZmqReplyConnection(ZmqConnection):
         @type message: C{str}
         """
         routingInfo = self._routingInfo.pop(messageId)
-        self.send(routingInfo + [messageId, ''] + list(messageParts))
+        self.send(routingInfo + [messageId, ''] + messageParts)
 
     def messageReceived(self, message):
         """
@@ -120,16 +123,37 @@ class ZmqReplyConnection(ZmqConnection):
         self._routingInfo[msgId] = routingInfo
         self.gotMessage(msgId, *msgParts)
 
-    def gotMessage(self, messageId, *messageParts):
+    def gotMessage(self, messageId, message):
+        """
+        Called on incoming message.
+
+        @param messageId: message uuid
+        @type messageId: C{str}
+        @param message: message
+        """
+        raise NotImplementedError(self)
+
+    def gotMultipart(self, messageId, messageParts):
         """
         Called on incoming message.
 
         @param messageId: message uuid
         @type messageId: C{str}
         @param messageParts: message data
-        @param tag: message tag
         """
         raise NotImplementedError(self)
+
+    def reply(self, messageId, message):
+        """
+        Semantic alias for ZmqReplyConnection.sendMsg
+        """
+        self.sendMsg(messageId, message)
+
+    def replyMultipart(self, messageId, messageParts):
+        """
+        Semantic alias for ZmqReplyConnection.sendMultipart
+        """
+        self.sendMultipart(messageId, messageParts)
 
 
 class ZmqXREQConnection(ZmqRequestConnection):
