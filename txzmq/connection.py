@@ -262,6 +262,8 @@ class ZmqConnection(object):
 
         @param parts: message data
         """
+        if not hasattr(parts, '__iter__'):
+            raise TypeError("ZmqConnection.sendMultipart requires an iterable")
         self.queue.extend([(constants.SNDMORE, m) for m in parts[:-1]])
         self.queue.append((0, parts[-1]))
 
