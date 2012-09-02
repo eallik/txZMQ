@@ -70,9 +70,12 @@ class ZmqSubConnection(ZmqBase):
         if len(message) == 2:  # XXX: this will be a bug with a 2 char string
             # compatibility receiving of tag as first part
             # of multi-part message
-            self.gotMessage(message[1], message[0])
+            tag, message = message
+            self.gotMessage(message, tag)
         else:
-            self.gotMessage(*reversed(message[0].split('\0', 1)))
+            assert len(message) == 1
+            tag, message = message[0].split('\0', 1)
+            self.gotMessage(message, tag)
 
     def gotMessage(self, message, tag):
         """
