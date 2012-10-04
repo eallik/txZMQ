@@ -72,7 +72,7 @@ class ZmqConnection(object):
     multicastRate = 100
     highWaterMark = 0
 
-    def __init__(self, factory, endpoint=None, identity=None):
+    def __init__(self, factory, endpoint=None, identity=None, hwm=None, linger=None):
         """
         Constructor.
 
@@ -89,13 +89,15 @@ class ZmqConnection(object):
         self.factory = factory
         self.endpoints = []
         self.identity = identity
+        if hwm is not None:
+            self.highWaterMark = hwm
         self.socket = Socket(factory.context, self.socketType)
         self.queue = deque()
         self.recv_parts = []
         self.scheduled_doRead = None
 
         self.fd = self.socket.getsockopt(constants.FD)
-        self.socket.setsockopt(constants.LINGER, factory.lingerPeriod)
+        self.socket.setsockopt(constants.LINGER, linger or factory.lingerPeriod)
         self.socket.setsockopt(
             constants.MCAST_LOOP, int(self.allowLoopbackMulticast))
         self.socket.setsockopt(constants.RATE, self.multicastRate)
